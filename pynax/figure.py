@@ -28,8 +28,6 @@ class Figure:
     def show(self):
         self.fig.show()
 
-    def propagate_changes(self, orig, changes):
+    def propagate_changes(self, changes):
         for view, _ in self.views:
-            if view == orig:
-                continue
             view.propagate_changes(changes)

@@ -5,10 +5,9 @@ import numpy as np
 
 class View:
 
-    def __init__(self, fig, ax, data, mark, h_axis, v_axis,
+    def __init__(self, fig, ax, data, mark, x_axis, y_axis,
                  display_options={}):
         """
-        XXX: add display properties
         """
         # XXX: do value checking
 
@@ -19,13 +18,13 @@ class View:
         self.layers = []
         self.ims = []
         self.mark = mark
-        self.h_axis = h_axis
-        self.v_axis = v_axis
-        self.h_marks = []
-        self.v_marks = []
+        self.x_axis = x_axis
+        self.y_axis = y_axis
+        self.x_marks = []
+        self.y_marks = []
         self.active = False
-        self.active_h = None
-        self.active_v = None
+        self.active_x = None
+        self.active_y = None
         self.add_layer(data, display_options)
         ax.invert_yaxis()
         ax.axis('off')
@@ -45,8 +44,8 @@ class View:
 
     def add_layer(self, data, display_options={}):
         data = data.transpose([self.mark.axis.id,
-                               self.h_axis.id,
-                               self.v_axis.id])
+                               self.y_axis.id,
+                               self.x_axis.id])
         if len(self.layers) != 0:
             if self.layers[0][0].shape != data.shape:
                 raise ValueError("All layers must have the same "
@@ -71,12 +70,14 @@ class View:
         self._update()
 
     def add_mark(self, mark):
-        if mark.axis == self.h_axis:
-            line = self.ax.axvline(self.ax.get_xbound()[0], animated=True)
-            self.h_marks.append((mark, line))
-        elif mark.axis == self.v_axis:
-            line = self.ax.axhline(self.ax.get_ybound()[0], animated=True)
-            self.v_marks.append((mark, line))
+        if mark.axis == self.x_axis:
+            line = self.ax.axvline(self.ax.get_xbound()[0], animated=True,
+                                   **mark.display_options)
+            self.x_marks.append((mark, line))
+        elif mark.axis == self.y_axis:
+            line = self.ax.axhline(self.ax.get_ybound()[0], animated=True,
+                                   **mark.display_options)
+            self.y_marks.append((mark, line))
         else:
             raise ValueError('This mark does not correspond to any axis')
 
@@ -87,62 +88,72 @@ class View:
             return
         self.active = True
         # Find closest marks
-        if len(self.h_marks) != 0:
+        if len(self.x_marks) != 0:
             dist = np.inf
-            for h, l in self.h_marks:
-                if abs(event.xdata - h.value) < dist:
-                    dist = abs(event.xdata - h.value)
-                    self.active_h = h, l
-        if len(self.v_marks) != 0:
+            for x, l in self.x_marks:
+                if abs(event.xdata - x.value) < dist:
+                    dist = abs(event.xdata - x.value)
+                    self.active_x = x, l
+        if len(self.y_marks) != 0:
             dist = np.inf
-            for v, l in self.v_marks:
-                if abs(event.ydata - v.value) < dist:
-                    dist = abs(event.ydata - v.value)
-                    self.active_v = v, l
+            for y, l in self.y_marks:
+                if abs(event.ydata - y.value) < dist:
+                    dist = abs(event.ydata - y.value)
+                    self.active_y = y, l
 
     def button_release_event(self, event):
         if self.active:
             self.active = False
-            self.active_h = None
-            self.active_v = None
+            self.active_x = None
+            self.active_y = None
 
     def motion_notify_event(self, event):
         if not self.active or event.inaxes != self.ax:
             return
         changes = []
-        if self.active_h is not None and \
-                int(self.active_h[0].value) != int(event.xdata):
-            self.active_h[0].value = int(event.ydata)
-            changes.append(self.active_h[0])
-            self.active_h[1].set_xdata((event.xdata, event.xdata))
-        if self.active_v is not None and \
-                int(self.active_v[0].value) != int(event.ydata):
-            self.active_v[0].value = int(event.xdata)
-            changes.append(self.active_v[0])
-            self.active_v[1].set_ydata((event.ydata, event.ydata))
+        if self.active_x is not None and \
+                int(self.active_x[0].value) != int(event.xdata):
+            self.active_x[0].value = int(event.xdata)
+            changes.append(self.active_x[0])
+        if self.active_y is not None and \
+                int(self.active_y[0].value) != int(event.ydata):
+            self.active_y[0].value = int(event.ydata)
+            changes.append(self.active_y[0])
         if len(changes) != 0:
-            self._update()
-            self.fig.propagate_changes(self, changes)
+            # propagate_changes will be called by the figure
+            self.fig.propagate_changes(changes)
 
     def _update(self):
         if self.background is not None:
             self.canvas.restore_region(self.background)
-        for _, line in self.h_marks:
+        for _, line in self.x_marks:
             self.ax.draw_artist(line)
-        for _, line in self.v_marks:
+        for _, line in self.y_marks:
             self.ax.draw_artist(line)
         self.canvas.blit(self.ax.bbox)
 
     def propagate_changes(self, changes):
+        redraw = False
+        update = False
         for mark in changes:
             # Check main image
             if mark == self.mark:
-                #self.im.remove()
                 self.mark.value = mark.value
-                #self.im = self.ax.imshow(self.data[mark.value],
-                #                         **self.display_options)
-                self.redraw_layers()
-                #self.h_marks[0][1]._invalidy = True
-           #else:
-           #     for h_mark, _ in self.h_marks:
-            #        if mark == h_mark:
+                redraw = True
+            else:
+                if mark.axis == self.x_axis:
+                    for x_mark, line in self.x_marks:
+                        if mark == x_mark:
+                            x_mark.value = mark.value
+                            line.set_xdata((mark.value, mark.value))
+                        update = True
+                if mark.axis == self.y_axis:
+                    for y_mark, line in self.y_marks:
+                        if mark == y_mark:
+                            y_mark.value = mark.value
+                            line.set_ydata((mark.value, mark.value))
+                            update = True
+        if redraw:
+            self.redraw_layers()
+        elif update:
+            self._update()

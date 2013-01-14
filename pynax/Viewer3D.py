@@ -1,5 +1,4 @@
 from . import Figure, create_axes, Mark
-from matplotlib import pyplot as pl
 
 
 def show(*args):
@@ -14,16 +13,16 @@ def show(*args):
     fig = Figure((2, 3))
 
     x, y, z = create_axes(['x', 'y', 'z'])
-    mx = Mark(x, 20)
-    my = Mark(y, 20)
-    mz = Mark(z, 20)
-    vx = fig.add((1, 2), layers[0][0], mx, z, y, display_options=layers[0][1])
+    mx = Mark(x, 20, {'color': 'r'})
+    my = Mark(y, 20, {'color': 'g'})
+    mz = Mark(z, 20, {'color': 'b'})
+    vx = fig.add((1, 2), layers[0][0], mx, y, z, display_options=layers[0][1])
     vx.add_mark(my)
     vx.add_mark(mz)
-    vy = fig.add((0, 2), layers[0][0], my, z, x, display_options=layers[0][1])
+    vy = fig.add((0, 2), layers[0][0], my, x, z, display_options=layers[0][1])
     vy.add_mark(mx)
     vy.add_mark(mz)
-    vz = fig.add((0, 0), layers[0][0], mz, y, x, shape=(2, 2),
+    vz = fig.add((0, 0), layers[0][0], mz, x, y, shape=(2, 2),
                  display_options=layers[0][1])
     vz.add_mark(mx)
     vz.add_mark(my)
@@ -32,3 +31,5 @@ def show(*args):
         vx.add_layer(data, display_options=options)
         vy.add_layer(data, display_options=options)
         vz.add_layer(data, display_options=options)
+
+    return fig
