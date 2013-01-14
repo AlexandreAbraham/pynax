@@ -51,9 +51,9 @@ class View:
             if self.layers[0][0].shape != data.shape:
                 raise ValueError("All layers must have the same "
                                  "shape as the data")
-        if not display_options.has_key('vmin'):
+        if not 'vmin' in display_options:
             display_options['vmin'] = np.min(data)
-        if not display_options.has_key('vmax'):
+        if not 'vmax' in display_options:
             display_options['vmax'] = np.max(data)
         im = self.ax.imshow(data[self.mark.value], **display_options)
         self.layers.append((data, display_options))
