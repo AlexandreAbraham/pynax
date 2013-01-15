@@ -79,11 +79,11 @@ class View:
 
     def add_mark(self, mark):
         if mark.axis == self.x_axis:
-            line = self.ax.axvline(self.ax.get_xbound()[0], animated=True,
+            line = self.ax.axvline(mark.value, animated=True,
                                    **mark.display_options)
             self.x_marks.append((mark, line))
         elif mark.axis == self.y_axis:
-            line = self.ax.axhline(self.ax.get_ybound()[0], animated=True,
+            line = self.ax.axhline(mark.value, animated=True,
                                    **mark.display_options)
             self.y_marks.append((mark, line))
         else:
