@@ -18,6 +18,7 @@ act_display_options = {}
 act_display_options['interpolation'] = 'nearest'
 act_display_options['cmap'] = pl.cm.autumn
 
-Viewer3D.show((data, display_options), (data_act, act_display_options))
+Viewer3D.show((data, display_options), (data_act, act_display_options),
+              title='Demo')
 
 pl.show()

@@ -1,7 +1,7 @@
 from . import Figure, create_axes, Mark
 
 
-def show(*args):
+def show(*args, **kwargs):
     # Expand display_options if provided
     layers = []
     for arg in args:
@@ -10,7 +10,7 @@ def show(*args):
         else:
             layers.append((arg, {}))
 
-    fig = Figure((2, 3))
+    fig = Figure((2, 3), **kwargs)
 
     x, y, z = create_axes(['x', 'y', 'z'])
     mx = Mark(x, 20, {'color': 'r'})

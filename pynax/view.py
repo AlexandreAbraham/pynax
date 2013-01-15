@@ -5,7 +5,7 @@ import numpy as np
 
 class View:
 
-    def __init__(self, fig, ax, data, mark, x_axis, y_axis,
+    def __init__(self, fig, ax, data, mark, x_axis, y_axis, marks=[],
                  display_options={}):
         """
         """
@@ -18,6 +18,7 @@ class View:
         self.layers = []
         self.ims = []
         self.mark = mark
+        self.marks = marks
         self.x_axis = x_axis
         self.y_axis = y_axis
         self.x_marks = []
@@ -43,9 +44,10 @@ class View:
         self._update()
 
     def add_layer(self, data, display_options={}):
-        data = data.transpose([self.mark.axis.id,
-                               self.y_axis.id,
-                               self.x_axis.id])
+        axis_id = [mark.axis.id for mark in self.marks]
+        data = data.transpose(axis_id + [self.mark.axis.id,
+                                         self.y_axis.id,
+                                         self.x_axis.id])
         if len(self.layers) != 0:
             if self.layers[0][0].shape != data.shape:
                 raise ValueError("All layers must have the same "
@@ -54,7 +56,10 @@ class View:
             display_options['vmin'] = np.min(data)
         if not 'vmax' in display_options:
             display_options['vmax'] = np.max(data)
-        im = self.ax.imshow(data[self.mark.value], **display_options)
+        data_ = data
+        for mark_ in self.marks:
+            data_ = data[mark_.value]
+        im = self.ax.imshow(data_[self.mark.value], **display_options)
         self.layers.append((data, display_options))
         self.ims.append(im)
 
@@ -64,7 +69,10 @@ class View:
             im.remove()
         self.ims = []
         for data, options in self.layers:
-            im = self.ax.imshow(data[self.mark.value], **options)
+            data_ = data
+            for mark_ in self.marks:
+                data_ = data[mark_.value]
+            im = self.ax.imshow(data_[self.mark.value], **options)
             self.ims.append(im)
         self.canvas.draw()
         self._update()
@@ -141,6 +149,10 @@ class View:
                 self.mark.value = mark.value
                 redraw = True
             else:
+                for mark_ in self.marks:
+                    if mark.axis == mark_.axis:
+                        mark_.value = mark.value
+                        redraw = True
                 if mark.axis == self.x_axis:
                     for x_mark, line in self.x_marks:
                         if mark == x_mark:
