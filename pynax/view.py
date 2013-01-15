@@ -111,6 +111,7 @@ class View:
 
     def button_release_event(self, event):
         if self.active:
+            self.motion_notify_event(event)
             self.active = False
             self.active_x = None
             self.active_y = None
