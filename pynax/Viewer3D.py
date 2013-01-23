@@ -28,8 +28,10 @@ def show(*args, **kwargs):
     vz.add_mark(my)
 
     for data, options in layers[1:]:
-        vx.add_layer(data, display_options=options)
-        vy.add_layer(data, display_options=options)
+        my_options = options.copy()
+        my_options['pynax_colorbar'] = False
+        vx.add_layer(data, display_options=my_options)
+        vy.add_layer(data, display_options=my_options)
         vz.add_layer(data, display_options=options)
 
     return fig
