@@ -9,6 +9,7 @@ niimg = utils.check_niimg(func)
 data = niimg.get_data()[..., 0]
 # Awesome example activation map : take whatever is > .6 max
 data_act = np.ma.MaskedArray(data, mask=(data < .6 * np.max(data)))
+vm = np.max(np.abs(data_act))
 
 display_options = {}
 display_options['interpolation'] = 'nearest'
@@ -16,7 +17,10 @@ display_options['cmap'] = pl.cm.gray
 
 act_display_options = {}
 act_display_options['interpolation'] = 'nearest'
-act_display_options['cmap'] = pl.cm.autumn
+act_display_options['cmap'] = pl.cm.jet
+act_display_options['vmin'] = -vm
+act_display_options['vmax'] = vm
+act_display_options['pynax_colorbar'] = True
 
 Viewer3D.show((data, display_options), (data_act, act_display_options),
               title='Demo')

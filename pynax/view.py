@@ -44,6 +44,15 @@ class View:
         self._update()
 
     def add_layer(self, data, display_options={}):
+        # split options
+        pl_options = {}
+        pn_options = {}
+        for k, v in display_options.items():
+            if k.startswith('pynax'):
+                pn_options[k] = v
+            else:
+                pl_options[k] = v
+
         axis_id = [mark.axis.id for mark in self.marks]
         data = data.transpose(axis_id + [self.mark.axis.id,
                                          self.y_axis.id,
@@ -52,15 +61,19 @@ class View:
             if self.layers[0][0].shape != data.shape:
                 raise ValueError("All layers must have the same "
                                  "shape as the data")
-        if not 'vmin' in display_options:
-            display_options['vmin'] = np.min(data)
-        if not 'vmax' in display_options:
-            display_options['vmax'] = np.max(data)
+        if not 'vmin' in pl_options:
+            pl_options['vmin'] = np.min(data)
+        if not 'vmax' in pl_options:
+            pl_options['vmax'] = np.max(data)
         data_ = data
         for mark_ in self.marks:
             data_ = data[mark_.value]
-        im = self.ax.imshow(data_[self.mark.value], **display_options)
-        self.layers.append((data, display_options))
+
+        im = self.ax.imshow(data_[self.mark.value], **pl_options)
+        if 'pynax_colorbar' in pn_options \
+                and pn_options['pynax_colorbar']:
+            self.ax.figure.colorbar(im, ax=self.ax)
+        self.layers.append((data, pl_options))
         self.ims.append(im)
 
     def redraw_layers(self):
