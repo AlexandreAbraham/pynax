@@ -26,6 +26,7 @@ class View:
         self.active = False
         self.active_x = None
         self.active_y = None
+        self.callbacks = []
         self.add_layer(data, display_options)
         ax.invert_yaxis()
         ax.axis('off')
@@ -84,7 +85,7 @@ class View:
         for data, options in self.layers:
             data_ = data
             for mark_ in self.marks:
-                data_ = data[mark_.value]
+                data_ = data_[mark_.value]
             im = self.ax.imshow(data_[self.mark.value], **options)
             self.ims.append(im)
         self.canvas.draw()
@@ -122,12 +123,28 @@ class View:
                     dist = abs(event.ydata - y.value)
                     self.active_y = y, l
 
+    def add_callback(self, callback):
+        self.callbacks.append(callback)
+
     def button_release_event(self, event):
         if self.active:
             self.motion_notify_event(event)
             self.active = False
             self.active_x = None
             self.active_y = None
+        if event.button != 1 and event.inaxes == self.ax:
+            # Get the value of the clicked pixel
+            data_ = self.layers[-1][0]
+            for mark_ in self.marks:
+                data_ = data_[mark_.value]
+            data_ = data_[self.mark.value]
+            value = data_[event.ydata, event.xdata]
+            # print value
+            for callback in self.callbacks:
+                try:
+                    callback(self, value)
+                except:
+                    continue
 
     def motion_notify_event(self, event):
         if not self.active or event.inaxes != self.ax:
