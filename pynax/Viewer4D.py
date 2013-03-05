@@ -37,7 +37,7 @@ def show(*args):
             fig.propagate_changes([mn])
 
     slider_ax = fig.get_subplot((1, 0), (3, 1))
-    slider = widgets.Slider(slider_ax, 'n', 0, layers[0][0].shape[-1])
+    slider = widgets.Slider(slider_ax, 'n', 0, layers[0][0].shape[-1] - 1)
     slider.on_changed(update)
     """
     for data, options in layers[1:]:
