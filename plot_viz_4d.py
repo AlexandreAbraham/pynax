@@ -71,6 +71,6 @@ vz.draw()
 vn.draw()
 
 # Must be after all init
-r = Refresher(fig, [mx, my, mz, mn])
+# r = Refresher(fig, [mx, my, mz, mn])
 
 pl.show()

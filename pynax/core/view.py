@@ -56,17 +56,13 @@ class View(object):
         raise NotImplemented("A view must implement a draw() method")
 
     def _redraw_marks(self):
-        if self.background is not None:
-            self.canvas.restore_region(self.background)
+        #if self.background is not None:
+        #    self.canvas.restore_region(self.background)
         for _, line in self.hmarks:
             self.ax.draw_artist(line)
         for _, line in self.vmarks:
             self.ax.draw_artist(line)
-        self.canvas.blit(self.ax.bbox)
-
-    def _redraw(self):
-        self.draw()
-        self._redraw_marks()
+        #self.canvas.blit(self.ax.bbox)
 
     def _clear(self, event):
         self.background = self.canvas.copy_from_bbox(self.ax.bbox)
@@ -120,6 +116,7 @@ class View(object):
         if not self.active or event.inaxes != self.ax:
             return
         eventx, eventy = self.data.project(event.xdata + .5, event.ydata + .5)
+
         if self.active_x is not None and \
                 int(self.active_x[0].value) != int(eventx):
             self.active_x[0].update_value(int(eventx))
@@ -130,27 +127,29 @@ class View(object):
     def on_update(self, mark):
         redraw = False
         # If the mark is in the coord, we have to redraw the whole image
-        # XXX we could store this information in the mark
+        # Otherwise, we put the mark invisible, change coord and visible again.
+
+        #self.canvas.restore_region(self.background)
+        self.draw()
         for data, _ in self.layers:
             if mark in data.coord:
                 redraw = True
-        for mark_ in self.hmarks:
-            for hmark, line in self.hmarks:
-                if mark == hmark:
-                    val = self.data.project(mark.value, None)[0]
-                    # XXX: this is kind of esoteric...
-                    if self.data.h_flip:
-                        val -= 1
-                    line.set_xdata((val, val))
-        for mark_ in self.vmarks:
-            for vmark, line in self.vmarks:
-                if mark == vmark:
-                    val = self.data.project(None, mark.value)[1]
-                    # XXX: this is kind of esoteric...
-                    if self.data.v_flip:
-                        val -= 1
-                    line.set_ydata((val, val))
-        if redraw:
-            self._redraw()
-        else:
-            self._redraw_marks()
+
+        for hmark, line in self.hmarks:
+            if mark == hmark:
+                val = self.data.project(hmark.value, None)[0]
+                # XXX: this is kind of esoteric...
+                if self.data.h_flip:
+                    val -= 1
+                line.set_xdata((val, val))
+            self.ax.draw_artist(line)
+        for vmark, line in self.vmarks:
+            if mark == vmark:
+                val = self.data.project(None, vmark.value)[1]
+                # XXX: this is kind of esoteric...
+                if self.data.v_flip:
+                    val -= 1
+                line.set_ydata((val, val))
+            self.ax.draw_artist(line)
+
+        self.canvas.blit(self.ax.bbox)
