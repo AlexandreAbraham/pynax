@@ -1,5 +1,5 @@
 from nisl import datasets, utils
-from pynax.core import Mark
+from pynax.core import Mark, Refresher
 from pynax.view import ImshowView
 import pylab as pl
 import numpy as np
@@ -26,6 +26,10 @@ ax_x = pl.subplot(131)
 ax_y = pl.subplot(132)
 ax_z = pl.subplot(133)
 
+ax_x.axis('off')
+ax_y.axis('off')
+ax_z.axis('off')
+
 # Views
 
 vx = ImshowView(ax_x, data, [mx, 'h', '-v'], display_options)
@@ -51,5 +55,8 @@ act_display_options['cmap'] = pl.cm.autumn
 vx.draw()
 vy.draw()
 vz.draw()
+
+# Must be after all init
+r = Refresher(fig, [mx, my, mz])
 
 pl.show()

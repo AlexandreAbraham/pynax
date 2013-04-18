@@ -1,7 +1,6 @@
 import numpy as np
 import copy
-
-from . import Mark, Data
+from . import Data
 
 
 class View(object):
@@ -20,8 +19,7 @@ class View(object):
         self.active = False
         self.active_x = None
         self.active_y = None
-        ax.axis('off')
-        self.ims = []
+        self.artists = []
         self.background = None
         self.canvas = ax.figure.canvas
         self.canvas.mpl_connect('motion_notify_event',

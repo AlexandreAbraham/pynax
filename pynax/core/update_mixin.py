@@ -2,8 +2,9 @@ class UpdateMixin:
 
     def subscribe(self, subscriber):
         if not hasattr(self, 'subscribers'):
-            self.subscribers = set()
-        self.subscribers.add(subscriber)
+            self.subscribers = []
+        if not subscriber in self.subscribers:
+            self.subscribers.append(subscriber)
 
     def fire_update(self, value):
         if not hasattr(self, 'subscribers'):
