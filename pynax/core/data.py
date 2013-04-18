@@ -79,10 +79,10 @@ class Data(UpdateMixin):
         #    v = t
 
         if h is not None and self.h_flip:
-            h = -h % self.data.shape[self.h_index]
+            h = self.data.shape[self.h_index] - h
 
         if v is not None and self.v_flip:
-            v = -v % self.data.shape[self.v_index]
+            v = self.data.shape[self.v_index] - v
 
         return h, v
 

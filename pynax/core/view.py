@@ -73,7 +73,8 @@ class View(object):
         self._redraw_marks()
 
     def button_press_event(self, event):
-        eventx, eventy = self.data.project(event.xdata, event.ydata)
+        eventx, eventy = self.data.project(event.xdata + .5 * np.sign(event.xdata),
+                                           event.ydata + .5 * np.sign(event.xdata))
         # Left mouse button
         if event.button != 1 or event.inaxes is None \
                 or event.inaxes != self.ax:
@@ -118,7 +119,7 @@ class View(object):
     def motion_notify_event(self, event):
         if not self.active or event.inaxes != self.ax:
             return
-        eventx, eventy = self.data.project(event.xdata, event.ydata)
+        eventx, eventy = self.data.project(event.xdata + .5, event.ydata + .5)
         if self.active_x is not None and \
                 int(self.active_x[0].value) != int(eventx):
             self.active_x[0].update_value(int(eventx))
@@ -137,11 +138,17 @@ class View(object):
             for hmark, line in self.hmarks:
                 if mark == hmark:
                     val = self.data.project(mark.value, None)[0]
+                    # XXX: this is kind of esoteric...
+                    if self.data.h_flip:
+                        val -= 1
                     line.set_xdata((val, val))
         for mark_ in self.vmarks:
             for vmark, line in self.vmarks:
                 if mark == vmark:
                     val = self.data.project(None, mark.value)[1]
+                    # XXX: this is kind of esoteric...
+                    if self.data.v_flip:
+                        val -= 1
                     line.set_ydata((val, val))
         if redraw:
             self._redraw()
