@@ -7,8 +7,5 @@ class Mark(UpdateMixin):
         self.value = value
         self.display_options = display_options
 
-    def update_value(self, new_value):
-        if self.value == new_value:
-            return
+    def set_value(self, new_value):
         self.value = new_value
-        self.fire_update(self)

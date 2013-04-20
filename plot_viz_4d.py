@@ -1,8 +1,16 @@
+import matplotlib
+
+
+matplotlib.use('WXAgg')
+
+
 from nisl import datasets, utils
 from pynax.core import Mark, Refresher
 from pynax.view import ImshowView, PlotView
 import pylab as pl
 import numpy as np
+
+
 
 nyu = datasets.fetch_nyu_rest(n_subjects=1)
 func = nyu.func[0]

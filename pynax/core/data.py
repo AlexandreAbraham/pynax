@@ -73,11 +73,6 @@ class Data(UpdateMixin):
     def project(self, h, v):
         ''' Turn x and y coord of plot into coordinates in our matrix
         '''
-        #if v is not None and h is not None and self.v_index < self.h_index:
-        #    t = h
-        #    h = v
-        #    v = t
-
         if h is not None and self.h_flip:
             h = self.data.shape[self.h_index] - h
 
@@ -88,7 +83,6 @@ class Data(UpdateMixin):
 
     def on_update(self, object):
         self.view = extract_data(self.data, self.coord)
-        self.fire_update(object)
 
     def __getitem__(self, a, b):
         return self.view.__getitem__(a, b)

@@ -1,6 +1,27 @@
+import threading
+from . import UpdateMixin
 import numpy as np
 import copy
 from . import Data
+
+
+def fire_update(target, objs):
+    target.on_update(objs)
+
+
+def thread_warn(targets, objs):
+    '''
+    threads = []
+    for target in targets:
+        threads.append(threading.Thread(None, fire_update, None,
+            (target, objs)))
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    '''
+    for target in targets:
+        target.on_update(objs)
 
 
 class View(object):
@@ -10,7 +31,6 @@ class View(object):
         self.hmarks = []
         self.vmarks = []
         # Suscribe to data update
-        self.data.subscribe(self)
         self.layers = []
         self.add_layer(data, coord, copy.copy(display_options))
 
@@ -55,6 +75,9 @@ class View(object):
     def draw(self):
         raise NotImplemented("A view must implement a draw() method")
 
+    def refresh(self):
+        raise NotImplemented("A view must implement a refresh() method")
+
     def _redraw_marks(self):
         #if self.background is not None:
         #    self.canvas.restore_region(self.background)
@@ -69,12 +92,13 @@ class View(object):
         self._redraw_marks()
 
     def button_press_event(self, event):
-        eventx, eventy = self.data.project(event.xdata + .5 * np.sign(event.xdata),
-                                           event.ydata + .5 * np.sign(event.xdata))
         # Left mouse button
         if event.button != 1 or event.inaxes is None \
                 or event.inaxes != self.ax:
             return
+        eventx, eventy = self.data.project(
+                event.xdata + .5 * np.sign(event.xdata),
+                event.ydata + .5 * np.sign(event.xdata))
         self.active = True
         # Find closest marks
         if len(self.hmarks) != 0:
@@ -117,39 +141,60 @@ class View(object):
             return
         eventx, eventy = self.data.project(event.xdata + .5, event.ydata + .5)
 
+        changes = []
         if self.active_x is not None and \
                 int(self.active_x[0].value) != int(eventx):
-            self.active_x[0].update_value(int(eventx))
+            self.active_x[0].set_value(int(eventx))
+            changes.append(self.active_x[0])
         if self.active_y is not None and \
                 int(self.active_y[0].value) != int(eventy):
-            self.active_y[0].update_value(int(eventy))
+            self.active_y[0].set_value(int(eventy))
+            changes.append(self.active_y[0])
+        if len(changes) != 0:
+            self.propagate(changes)
 
-    def on_update(self, mark):
-        redraw = False
-        # If the mark is in the coord, we have to redraw the whole image
-        # Otherwise, we put the mark invisible, change coord and visible again.
+    def propagate(self, marks):
+        # First, gather all object to update
+        datas = set()
+        views = set()
+        others = set()
 
-        #self.canvas.restore_region(self.background)
-        self.draw()
-        for data, _ in self.layers:
-            if mark in data.coord:
-                redraw = True
+        # Init
+        objs = []
+        for mark in marks:
+            objs += list(mark.get_subscribers())
+        while not len(objs) == 0:
+            obj = objs.pop()
+            if isinstance(obj, Data):
+                datas.add(obj)
+            elif isinstance(obj, View):
+                views.add(obj)
+            else:
+                others.add(obj)
+            if isinstance(obj, UpdateMixin):
+                objs += list(obj.get_subscribers())
 
-        for hmark, line in self.hmarks:
-            if mark == hmark:
-                val = self.data.project(hmark.value, None)[0]
-                # XXX: this is kind of esoteric...
-                if self.data.h_flip:
-                    val -= 1
-                line.set_xdata((val, val))
-            self.ax.draw_artist(line)
-        for vmark, line in self.vmarks:
-            if mark == vmark:
-                val = self.data.project(None, vmark.value)[1]
-                # XXX: this is kind of esoteric...
-                if self.data.v_flip:
-                    val -= 1
-                line.set_ydata((val, val))
-            self.ax.draw_artist(line)
+        thread_warn(datas, marks)
+        thread_warn(views, marks)
+        thread_warn(others, marks)
 
+    def on_update(self, objs):
+        self.refresh()
+        for mark in objs:
+            for vmark, line in self.vmarks:
+                if mark == vmark:
+                    val = self.data.project(None, vmark.value)[1]
+                    # XXX: this is kind of esoteric...
+                    if self.data.v_flip:
+                        val -= 1
+                    line.set_ydata((val, val))
+                self.ax.draw_artist(line)
+            for hmark, line in self.hmarks:
+                if mark == hmark:
+                    val = self.data.project(hmark.value, None)[0]
+                    # XXX: this is kind of esoteric...
+                    if self.data.h_flip:
+                        val -= 1
+                    line.set_xdata((val, val))
+                self.ax.draw_artist(line)
         self.canvas.blit(self.ax.bbox)
