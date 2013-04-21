@@ -1,27 +1,7 @@
-import threading
 from . import UpdateMixin
 import numpy as np
 import copy
 from . import Data
-
-
-def fire_update(target, objs):
-    target.on_update(objs)
-
-
-def thread_warn(targets, objs):
-    '''
-    threads = []
-    for target in targets:
-        threads.append(threading.Thread(None, fire_update, None,
-            (target, objs)))
-    for thread in threads:
-        thread.start()
-    for thread in threads:
-        thread.join()
-    '''
-    for target in targets:
-        target.on_update(objs)
 
 
 class View(object):
@@ -174,9 +154,14 @@ class View(object):
             if isinstance(obj, UpdateMixin):
                 objs += list(obj.get_subscribers())
 
-        thread_warn(datas, marks)
-        thread_warn(views, marks)
-        thread_warn(others, marks)
+    #for target in targets:
+    #    target.on_update(objs)
+        for data in datas:
+            data.on_update(marks)
+        for view in views:
+            view.on_update(marks)
+        for other in others:
+            other.on_update(marks)
 
     def on_update(self, objs):
         self.refresh()
@@ -188,7 +173,6 @@ class View(object):
                     if self.data.v_flip:
                         val -= 1
                     line.set_ydata((val, val))
-                self.ax.draw_artist(line)
             for hmark, line in self.hmarks:
                 if mark == hmark:
                     val = self.data.project(hmark.value, None)[0]
@@ -196,5 +180,9 @@ class View(object):
                     if self.data.h_flip:
                         val -= 1
                     line.set_xdata((val, val))
-                self.ax.draw_artist(line)
+        for _, line in self.hmarks:
+            self.ax.draw_artist(line)
+
+        for _, line in self.vmarks:
+            self.ax.draw_artist(line)
         self.canvas.blit(self.ax.bbox)

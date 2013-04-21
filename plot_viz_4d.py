@@ -1,15 +1,8 @@
-import matplotlib
-
-
-matplotlib.use('WXAgg')
-
-
 from nisl import datasets, utils
-from pynax.core import Mark, Refresher
+from pynax.core import Mark
 from pynax.view import ImshowView, PlotView
 import pylab as pl
 import numpy as np
-
 
 
 nyu = datasets.fetch_nyu_rest(n_subjects=1)
@@ -61,16 +54,17 @@ vz.add_hmark(mx)
 vz.add_vmark(my)
 
 vn = PlotView(ax_n, data, [mx, my, mz, 'h'], {'color': 'gray'})
+pl.ylim(0, np.max(data))
 vn.add_hmark(mn)
 
-act_display_options = {}
-act_display_options['interpolation'] = 'nearest'
-act_display_options['cmap'] = pl.cm.autumn
+ac_display_options = {}
+ac_display_options['interpolation'] = 'nearest'
+ac_display_options['cmap'] = pl.cm.autumn
 
 
-vx.add_layer(data_act, [mx, 'h', '-v', mn], display_options=act_display_options)
-vy.add_layer(data_act, ['h', my, '-v', mn], display_options=act_display_options)
-vz.add_layer(data_act, ['h', '-v', mz, mn], display_options=act_display_options)
+vx.add_layer(data_act, [mx, 'h', '-v', mn], display_options=ac_display_options)
+vy.add_layer(data_act, ['h', my, '-v', mn], display_options=ac_display_options)
+vz.add_layer(data_act, ['h', '-v', mz, mn], display_options=ac_display_options)
 vn.add_layer(data_act, [mx, my, mz, 'h'], display_options={'color': 'r'})
 
 vx.draw()
