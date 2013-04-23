@@ -10,12 +10,19 @@ niimg = utils.check_niimg(func)
 fig = pl.figure(figsize=(17, 5))
 data = niimg.get_data()[..., 0]
 
-# Awesome example activation map : take whatever is > .6 max
-data_act = np.ma.MaskedArray(data * 0.8, mask=(data < .5 * np.max(data)))
+# Awesome example activation map: threshold
+data_act = np.ma.MaskedArray(data * 0.8, mask=(data < .6 * np.max(data)))
 
+# Display options
 display_options = {}
 display_options['interpolation'] = 'nearest'
 display_options['cmap'] = pl.cm.gray
+
+ac_display_options = {}
+ac_display_options['interpolation'] = 'nearest'
+ac_display_options['cmap'] = pl.cm.autumn
+ac_display_options['vmin'] = data_act.min()
+ac_display_options['vmax'] = data_act.max()
 
 # Marks
 mx = Mark(20, {'color': 'r'})
@@ -27,6 +34,7 @@ for i in range(10):
     ax = fig.add_axes([0.14 * (i % 5), 0.55 * (1 - i / 5), 0.13, 0.45])
     ax.axis('off')
     vz = ImshowView(ax, data, ['h', '-v', mz], display_options)
+    vz.add_layer(data_act, ['h', '-v', mz], display_options=ac_display_options)
     views.append(vz)
     vz.add_hmark(mx)
 
@@ -34,18 +42,9 @@ for i in range(10):
 ax_z = fig.add_axes([0.7, 0., 0.3, 1.])
 ax_z.axis('off')
 vx = ImshowView(ax_z, data, [mx, 'h', '-v'], display_options)
+vx.add_layer(data_act, [mx, 'h', '-v'], display_options=ac_display_options)
 for m in marks:
     vx.add_vmark(m)
-
-act_display_options = {}
-act_display_options['interpolation'] = 'nearest'
-act_display_options['cmap'] = pl.cm.autumn
-
-'''
-vx.add_layer(data_act, display_options=act_display_options)
-for v in slices:
-    v.add_layer(data_act, display_options=act_display_options)
-'''
 
 vx.draw()
 for v in views:
