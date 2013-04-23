@@ -38,13 +38,17 @@ class View(object):
         self.layers.append((data, display_options))
 
     def add_vmark(self, mark):
-        line = self.ax.axhline(mark.value, animated=True,
+        # Project value for the mark
+        line_value = self.data.project(None, mark.value)[1]
+        line = self.ax.axhline(line_value, animated=True,
                                **mark.display_options)
         self.vmarks.append((mark, line))
         mark.subscribe(self)
 
     def add_hmark(self, mark):
-        line = self.ax.axvline(mark.value, animated=True,
+        # Project value for the mark
+        line_value = self.data.project(mark.value, None)[0]
+        line = self.ax.axvline(line_value, animated=True,
                                **mark.display_options)
         self.hmarks.append((mark, line))
         mark.subscribe(self)
