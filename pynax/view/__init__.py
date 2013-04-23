@@ -1,2 +1,2 @@
-from imshow import ImshowView
-from plot import PlotView
+from .imshow import ImshowView
+from .plot import PlotView
