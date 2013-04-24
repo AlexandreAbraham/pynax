@@ -7,7 +7,7 @@ class ImshowView(View):
         self.background = self.canvas.copy_from_bbox(self.ax.bbox)
         for data, options in self.layers:
             data_ = data.view
-            image = self.ax.matshow(data_, animated=True, **options)
+            image = self.ax.imshow(data_, animated=True, **options)
             self.artists.append(image)
 
     def refresh(self):
