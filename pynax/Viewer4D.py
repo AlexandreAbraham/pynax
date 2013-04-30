@@ -1,7 +1,7 @@
 import pylab as pl
 import numpy as np
 
-from . import Mark
+from .core import Mark
 from .view import ImshowView, PlotView
 
 
