@@ -17,6 +17,8 @@ Pynax uses matplotib animated mode. Therefore, you must ensure that all your
 plotsa and matplotlib images have not been garbage collected to ensure interactivity.
 If at some point Pynax shows a non-interactive figure, this is most likely because
 one of your plot or image is no more in memory.
+This also implies that you have create brand new objects for each of your
+'show'. You can't reuse previous objects and just 'draw' them.
 
 Pynax uses axis related method instead of general methods. So, if you 'draw' a
 matrix, you cannot use pl.colorbar() to add a color bar to it. You have to
@@ -41,6 +43,8 @@ plots.
   point, a mark is updated, then its value will be updated in all the plot where
   it appears. A mark has some intrisic properties, like color, that are used
   when the mark is drawn on a plot.
+  Note: Marks can be spread over several figures (ie several windows in
+  matplotlib).
 
 * View: this is a kind of matplotlib axis, with some enhancement like the
   ability to draw several layers. All axis functionalities are not available in
