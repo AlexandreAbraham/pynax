@@ -1,7 +1,8 @@
 from ..core import View
+from .colorbar_mixin import ColorbarMixin
 
 
-class MatshowView(View):
+class MatshowView(View, ColorbarMixin):
 
     def draw(self):
         self.background = self.canvas.copy_from_bbox(self.ax.bbox)
