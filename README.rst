@@ -4,8 +4,10 @@ Pynax
 Minimal visualization toolkit for Python (Python n-axis).
 
 Pynax:
+
 * offers a user friendly interface to display your multidimensional data in
   Python through the matplotlib API
+
 * brings native interactivity to your plots. Easy as pie !
 
 Warnings
