@@ -1,10 +1,13 @@
 from os.path import join
+import matplotlib
+#matplotlib.use('WX')
+
 import pylab as pl
 import nibabel
 import numpy as np
 from pynax.core import Mark
 from pynax.view import MatshowView, ImshowView, PlotView
-from nisl.resampling import resample_img
+from nilearn.resampling import resample_img
 
 
 path = join('data', 'cov')
@@ -13,7 +16,8 @@ maps_img = nibabel.load(join(path, 'model0_umaps.nii.gz'))
 maps = np.rollaxis(maps_img.get_data(), 3)
 maps = np.ma.masked_less_equal(maps, 0)
 time_series = np.load(join(path, 'learn_time_series_0.npy'))[0].T
-bg = nibabel.load('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm.nii.gz')
+# bg = nibabel.load('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm.nii.gz')
+bg = nibabel.load('bg.nii.gz')
 bg = resample_img(bg, target_shape=maps_img.shape[:3],
         target_affine=maps_img.get_affine())
 bg = bg.get_data()
@@ -107,7 +111,8 @@ vcov = MatshowView(ax_cov, -cov_mat, ['h', 'v'], cov_display_options)
 vcov.add_hmark(cov2)
 vcov.add_vmark(cov1)
 
-vseries = PlotView(ax_series, time_series, [cov1, 'h'], {'color': 'b'})
+vseries = PlotView(ax_series, time_series, [cov1, 'h'], {'color': 'b'},
+        autoscale=True)
 ax_series.set_ylim(time_series.min(), time_series.max())
 vseries.add_layer(time_series, [cov2, 'h'], {'color': 'r'})
 

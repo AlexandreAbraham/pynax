@@ -1,4 +1,5 @@
 from ..core import View
+import numpy as np
 
 
 class PlotView(View):
@@ -17,3 +18,5 @@ class PlotView(View):
             lines[0].set_ydata(data_)
         for lines in self.artists:
             self.ax.draw_artist(lines[0])
+        if 'autoscale' in self.kwargs:
+            self.ax.redraw()

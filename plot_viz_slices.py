@@ -1,4 +1,4 @@
-from nisl import datasets, utils
+from nisl import datasets, _utils
 from pynax.core import Mark
 from pynax.view import ImshowView
 import pylab as pl
@@ -6,7 +6,7 @@ import numpy as np
 
 nyu = datasets.fetch_nyu_rest(n_subjects=1)
 func = nyu.func[0]
-niimg = utils.check_niimg(func)
+niimg = _utils.check_niimg(func)
 fig = pl.figure(figsize=(17, 5))
 data = niimg.get_data()[..., 0]
 

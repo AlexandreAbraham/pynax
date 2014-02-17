@@ -6,7 +6,7 @@ from . import Data
 
 class View(object):
 
-    def __init__(self, ax, data, coord, display_options={}):
+    def __init__(self, ax, data, coord, display_options={}, **kwargs):
         self.data = Data(data, coord)
         self.hmarks = []
         self.vmarks = []
@@ -30,6 +30,7 @@ class View(object):
                                 self.button_release_event)
         self.canvas.mpl_connect('draw_event',
                                 self._clear)
+        self.kwargs = kwargs
 
     def add_layer(self, data, coord, display_options):
         # XXX check data shape
