@@ -5,7 +5,7 @@ from matplotlib.pyplot import Line2D
 
 
 def parallel_coordinates(data, ax=None, labels=None,
-        linestyles=None, colors=None, cmap=None):
+        linestyles=None, colors=None, cmap=None, legend_anchor=(1.3, 1.)):
     """ Parallel coordinates plot
 
     Parameters:
@@ -31,6 +31,9 @@ def parallel_coordinates(data, ax=None, labels=None,
         If specified, sample lines are colored depending on the colors
         parameter values.
     """
+
+    assert(labels is None or data.shape[1] == len(labels))
+    assert(colors is None or len(colors) == data.shape[0])
 
     dims = data.shape[1]
     xticks = np.arange(dims)
@@ -61,6 +64,7 @@ def parallel_coordinates(data, ax=None, labels=None,
     # Calculate the limits on the data
     mins = np.nanmin(data, axis=0)
     maxs = np.nanmax(data, axis=0)
+    mins[mins == maxs] = mins[mins == maxs] - 0.01
     ranges = maxs - mins
 
     # Normalize the data
@@ -96,7 +100,7 @@ def parallel_coordinates(data, ax=None, labels=None,
     scolors, index = np.unique(colors, return_index=True)
     scolors_ = np.asarray(colors_)[index]
     pl.legend([Line2D((0, 1), (0, 0), color=sc_) for sc_ in scolors_], scolors,
-            loc='upper left', bbox_to_anchor=(1.3, 1.))
+            loc='upper left', bbox_to_anchor=legend_anchor)
     return ax
 
 
