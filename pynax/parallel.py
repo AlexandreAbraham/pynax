@@ -1,107 +1,56 @@
 import pylab as pl
 import numpy as np
-from matplotlib import cm
-from matplotlib.pyplot import Line2D
+import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import host_subplot
+import mpl_toolkits.axisartist as AA
 
 
-def parallel_coordinates(data, ax=None, labels=None,
-        linestyles=None, colors=None, cmap=None, legend_anchor=(1.3, 1.)):
-    """ Parallel coordinates plot
+class ParallelCoordinatesPlot(object):
 
-    Parameters:
-    -----------
-    data: numpy array (n_samples, n_coordinates)
-        Data to plot.
+    def __init__(self, data, labels, colors=None):
+        self.data = data
+        host = host_subplot(111, axes_class=AA.Axes)
+        #plt.subplots_adjust(right=0.75)
 
-    ax: matplotlib axis (optional)
-        The axis where the PCP must be plotted
+        plt.gca().set_frame_on(False)
+        host.set_frame_on(False)
+        xticks = np.arange(data.shape[1])
+        host.set_xticks(xticks)
+        host.set_xticklabels(labels)
+        host.yaxis.set_visible(False)
+        host.tick_params(axis='x', length=0)
+        host.axis['top'].set_visible(False)
+        host.axis['right'].set_visible(False)
 
-    labels: list of n_coordinates labels (optional)
-        Labels of the coordinates.
+        host.set_ylim(np.min(data[:, 0]) - 0.1, np.max(data[:, 0]) + 0.1)
+        axes = [host]
+        for i in range(1, data.shape[1]):
+            ax = host.twinx()
+            ax.set_ylim(np.min(data[:, i]), np.max(data[:, i]))
+            ax.axis["right"] = ax.new_floating_axis(1, value=i)
+            ax.axis["right"].set_axis_direction("left")
+            axes.append(ax)
+        else:
+            ax.axis["right"].set_axis_direction("right")
 
-    linestyles: list of n_samples matplotlib linestyles (optional)
-        Linestyles for all samples
+        self.axes = axes
+        self.colors = colors
 
-    colors: ndarray of floats or string (optional)
-        If cmap is None, colors must be an array of matplotlib colors.
-        Otherwise, colors indicates the color value for each sample. If
-        strings are passed, they are considered as categories.
+    def draw(self):
+        # We transform the data
+        data_ = self.data.copy()
+        inverted = self.axes[0].transData.inverted().transform
 
-    cmap: matplotlib colormap (optional)
-        If specified, sample lines are colored depending on the colors
-        parameter values.
-    """
+        for i in range(1, self.data.shape[1]):
+            data_[:, i] = inverted(self.axes[i].transData.transform(
+                np.c_[np.ones(self.data.shape[0]), self.data[:, i]]))[:, 1]
 
-    assert(labels is None or data.shape[1] == len(labels))
-    assert(colors is None or len(colors) == data.shape[0])
-
-    dims = data.shape[1]
-    xticks = np.arange(dims)
-    labels = xticks if labels is None else labels
-    if ax is None:
-        ax = pl.gca()
-    pl.subplots_adjust(left=0.1, bottom=0.1, right=.8, top=0.95)
-    axes = [pl.axes(bb, frameon=False, xticks=[]) for bb in
-            ax.get_position().splitx(*np.linspace(0, 1, dims)[1:-1])]
-
-    colors_ = colors
-    if colors is not None and cmap is not None:
-        if isinstance(colors[0], basestring):
-            _, colors_ = np.unique(colors, return_inverse=True)
-        colors_ = colors_.astype(float) - np.min(colors_)
-        colors_ = colors_ / np.max(colors_)
-        if isinstance(cmap, basestring):
-            cmap = cm.get_cmap(cmap)
-        colors_ = np.asarray(cmap(colors_))
-
-    ax.set_frame_on(False)
-    ax.set_xticklabels(labels)
-    ax.set_xticks(xticks)
-    ax.tick_params(axis='x', pad=10)
-    ax.set_xlim(0, dims - 1)
-    ax.yaxis.set_visible(False)
-
-    # Calculate the limits on the data
-    mins = np.nanmin(data, axis=0)
-    maxs = np.nanmax(data, axis=0)
-    mins[mins == maxs] = mins[mins == maxs] - 0.01
-    ranges = maxs - mins
-
-    # Normalize the data
-    data_ = (data - mins) / ranges
-
-    # Plot the data on all the subplots
-    for i, ax_ in enumerate(axes):
-        for dsi, d in enumerate(data_):
+        self.axes[0].set_xlim(0, self.data.shape[1] - 0.99)
+        for i, d in enumerate(data_):
             kwargs = {}
-            if linestyles is not None:
-                kwargs['linestyle'] = linestyles[dsi]
-            if colors is not None:
-                kwargs['color'] = colors_[dsi]
-            ax_.plot([i, i + 1], d[i:i + 2], **kwargs)
-        ylabels = np.linspace(np.min(data[:, i]), np.max(data[:, i]),
-                len(ax_.get_yticklabels()))
-        ax_.set_yticklabels(['%.2f' % ylabel for ylabel in ylabels])
-        ax_.axvline(i, color='k')
-        ax_.set_xlim(i, i + 1)
-        # Last iteration
-        if i == dims - 2:
-            # We clone the last axes to put yticks on the right
-            tx_ = ax_.twinx()
-            ylabels = np.linspace(np.min(data[:, i + 1]),
-                    np.max(data[:, i + 1]),
-                len(tx_.get_yticklabels()))
-            tx_.set_yticklabels(['%.2f' % ylabel for ylabel in ylabels])
-            # .99, magic !
-            ax_.axvline(i + .99, color='k')
-            tx_.set_xlim(i, i + 1)
-            ax.add_artist(ax_)
-    # Legend
-    scolors, index = np.unique(colors, return_index=True)
-    scolors_ = np.asarray(colors_)[index]
-    pl.legend([Line2D((0, 1), (0, 0), color=sc_) for sc_ in scolors_], scolors,
-            loc='upper left', bbox_to_anchor=legend_anchor)
-    return ax
+            if self.colors is not None:
+                kwargs['color'] = self.colors[i]
+            plt.plot(d, **kwargs)
 
 
 if __name__ == '__main__':
@@ -118,5 +67,6 @@ if __name__ == '__main__':
                  for x in xrange(5)] for y in xrange(30)])
     colors.extend(['b'] * 30)
     labels = ['oh', 'ah', 'eh', 'uh', 'ih']
-    parallel_coordinates(np.asarray(data), labels=labels, colors=colors)
+    pcp = ParallelCoordinatesPlot(np.asarray(data), labels, colors=colors)
+    pcp.draw()
     pl.show()
