@@ -1,4 +1,4 @@
-from nisl import datasets, _utils
+from nilearn import datasets, _utils
 from pynax.core import Mark
 from pynax.view import ImshowView
 import pylab as pl
